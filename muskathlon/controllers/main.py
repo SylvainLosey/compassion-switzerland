@@ -6,6 +6,7 @@
 #    The licence is in the file __manifest__.py
 #
 ##############################################################################
+from datetime import datetime
 import json
 import urllib.error
 import urllib.parse
@@ -22,6 +23,22 @@ from odoo.http import request, route
 
 
 class MuskathlonWebsite(EventsController):
+    @route("/muskathlon/", auth="public", website=True)
+    def muskathlon_list(self, **kwargs):
+        # Events that are set to finish after today
+        started_events = request.env["crm.event.compassion"].search(
+            [
+                ("is_published", "=", True),
+                ("end_date", ">=", datetime.today()),
+                ("website_muskathlon", "=", True),
+            ]
+        )
+        if len(started_events) == 1:
+            return request.redirect("/event/" + str(started_events.id))
+        return request.render(
+            "website_event_compassion.list", {"events": started_events}
+        )
+
     @route('/event/<model("crm.event.compassion"):event>/', auth="public", website=True)
     def event_page(self, event, **kwargs):
         result = super(MuskathlonWebsite, self).event_page(event, **kwargs)

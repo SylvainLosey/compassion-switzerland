@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 
 import werkzeug
 
-from odoo import http, _, fields
+from odoo import http, _
 from odoo.http import request
 
 from odoo.addons.payment.models.payment_acquirer import ValidationError
@@ -23,11 +23,14 @@ from odoo.addons.cms_form_compassion.controllers.payment_controller import (
 
 class EventsController(PaymentFormController):
     @http.route("/events/", auth="public", website=True)
-    def list(self, **kwargs):
-        today = fields.Date.to_string(datetime.today())
+    def events_list(self, **kwargs):
         # Events that are set to finish after today
         started_events = request.env["crm.event.compassion"].search(
-            [("is_published", "=", True), ("end_date", ">=", today), ]
+            [
+                ("is_published", "=", True),
+                ("end_date", ">=", datetime.today()),
+                ("website_muskathlon", "=", False),
+            ]
         )
         if len(started_events) == 1:
             return request.redirect("/event/" + str(started_events.id))
